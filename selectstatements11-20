@@ -1,0 +1,74 @@
+GO
+
+SELECT db_name();
+
+select * from Emp;
+select * from Dept;
+-- Neue Themen: Funktionen wie sum, round; order by; Alias
+
+-- 11) Erstellen Sie ein vollständiges Mitarbeiterverzeichnis sortiert nach Provision.
+select * from Emp order by Comm desc;
+
+-- 12) Erstellen Sie ein Mitarbeiterverzeichnis sortiert nach Filiale und innerhalb einer Filiale 
+-- sortiert nach Eintrittsdatum, wobei der älteste Mitarbeiter an letzter Stelle steht und 
+-- Führungskräfte nicht berücksichtigt werden sollen.
+select * from Emp where (Job <> 'MANAGER' AND Job <> 'PRESIDENT') 
+order by DeptNo asc, HireDate desc; 
+
+select * from Emp where Job not in ('MANAGER', 'PRESIDENT')
+order by DeptNo, HireDate desc; 
+
+-- 13) Geben Sie alle Namen aus, die 6 Zeichen lang sind.
+select EName as [Employee Name] from Emp where len(EName) = 6;
+
+-- 14) Geben Sie Namen und Tätigkeiten aller Angestellten aus, die in Filiale 30 arbeiten. 
+-- Trennen Sie den Namen vom Beruf durch einen Bindestrich. 
+-- Erfinden Sie eine andere Überschrift für die Ausgabe.
+select  CONCAT(EName, ' - ', Job)  Mitarbeiter_Jobs from Emp where DeptNo = 30;
+select  EName + ' - ' + Job AS Mitarbeiter_Jobs from Emp where DeptNo = 30;
+
+-- 15) Geben Sie Namen, Monatsgehalt, Tagesgehalt, Stundengehalt aller Angestellten aus.
+-- (Nehmen Sie an, der Wert in der Tabelle ist der Monatsgehalt; es gibt 22 Arbeitstage 
+-- pro Monat und 8 Stunden pro Tag). Ersetzen Sie die Überschriften durch MONTHLY, DAILY und HOURLY.
+select EName, Sal as Monthly, Sal/22 as Daily, Sal/22/8 as Hourly, Round(Sal/22/8, 2, 0) as [Rounded hourly] from Emp;
+
+-- 16) Geben Sie den monatlichen Gesamtbetrag der Gehälter aller Angestellten dieser Firma aus.
+select * from Emp;
+
+select sum(Sal) as Gehälter from Emp;
+select Sal + isnull(Comm, 0) from Emp;
+
+
+-- 17) Ermitteln Sie die durchschnittliche Provision im Konzern, wenn für jene Mitarbeiter, 
+-- welche keine Provision eingetragen haben, eine Pauschale von 250 vorgesehen ist.
+-- Achtung: Lösung im PDF zeigt die Summe der Provisionen an, im Word korrigiert.
+
+select avg(coalesce(Comm, 250)) as [Durchschnittliche Provision] from Emp;
+
+-- Formatieren der Ausgabe
+select FORMAT(avg(coalesce(Comm, 250)), 'N3') as [Durchschnittliche Provision] from Emp;
+select FORMAT(avg(coalesce(Comm, 250)), 'N') as [Durchschnittliche Provision] from Emp;
+select FORMAT(avg(coalesce(Comm, 250)), 'G', 'en-us') as [Durchschnittliche Provision] from Emp;
+select FORMAT(avg(coalesce(Comm, 250)), 'G', 'de-AT') as [Durchschnittliche Provision] from Emp;
+select FORMAT(avg(coalesce(Comm, 250)), 'C', 'en-US') as [Durchschnittliche Provision] from Emp;
+select FORMAT(avg(coalesce(Comm, 250)), 'C', 'de-AT') as [Durchschnittliche Provision] from Emp;
+
+
+-- Die Personen mit einem Null-Wert in der Spalte Comm werden nicht berücksichtigt, d.h. es wird
+-- (300+1400+0+500/4) für den Durchschnitt gerechnet
+select avg(Comm) as [Durchschnittliche Provision] from Emp;
+
+-- 18) Wieviele Personen bekommen in Filiale 30 ein Gehalt, wieviele eine Provision? (nur eine query)
+select count(*), count(Sal) as Gehaltsbezieher, count(Comm) as Provisionsbezieher from Emp where DeptNo=30;
+select * from Emp;
+-- 19) Geben Sie die Anzahl der unterschiedlichen Berufe an.
+select count(distinct(Job)) as UnterschiedlicheJobs from emp;
+
+--20) Geben Sie die Statistikdaten (Summe aller Gehälter, Summe aller Provisionen, Durchschnittsgehalt,
+-- Durchschnittsprovision) für Filiale 30 aus.
+select sum(Sal) as SummeGehälter, sum(Comm) as Provisionen, 
+avg(Sal) as Durchschnittsgehalt, avg(Comm) as Durchschnittsprovision 
+from Emp
+where DeptNo = 30;
+
+

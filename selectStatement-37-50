@@ -1,1 +1,62 @@
+use EmployeeScott
+--37)	Ermitteln Sie die Namen aller Mitarbeiter, die mehr verdienen als JONES. 
+
+select ENAME from EMP
+where SAL > (select SAL from EMP where ENAME = 'JONES');
+
+--38)Für jeden Mitarbeiter, dessen Gehalt über dem Gehalt seines Vorgesetzten liegt, soll Name und Gehalt des Mitarbeiters sowie von dessen Vorgesetzten ausgegeben werden. 
+ 
+ select ENAME as Angestellter, SAL, MGR as Vorgesetzter from EMP 
+ where EMPNO = (select MGR from EMP where Job ='Manager')
+ --& SAL > (select SAL from Emp where Job ='Manger')
+ --order by SAL > (select SAL from Emp where job ='Manger')
+
+ --39)	Ermitteln Sie die Namen jener Mitarbeiter, die weniger als 30 % von Einkommen des Präsidenten verdienen. 
+
+ select ENAME from Emp 
+ where SAL < (select SAL *0.3 from Emp where job like 'President')
+  
+--40)	Ermitteln Sie die Namen aller Filialen, welche keine Mitarbeiter eingetragen haben. 
+select DNAME from DEPT
+where DEPTNO !=All (select DEPTNO from EMP)
+
+--41)	Ermitteln Sie die Namen aller Personen, welche den gleichen Beruf wie JONES ausüben. 
+ select ENAME  from EMP 
+ where job = (select job from Emp where ENAME = 'JONES')
+
+ --42)	Ermitteln Sie Name, Beruf und Gehalt jener Person, welche am meisten verdient (SAL+COMM). 
+ select Job, ENAME, SAL from Emp
+ where Sal = max(SAL)
+
+ --44 Wie viele arbeiten in New York
+ select count(ENAME) from Emp 
+where DEPTNO = (select DEPTNO from DEPT where LOC like 'New York')
+
+--45)	Wer arbeitet in New York? 
+select ENAME from Emp 
+where DEPTNO = (select DEPTNO from DEPT where LOC like 'New York')
+
+--43)	Ermitteln Sie den längsten Familiennamen. 
+select ENAME from Emp
+where LEN(ENAME) = 6
+
+--46)	Ermitteln Sie alle Personen aus Chicago, die den gleichen Beruf wie ALLEN ausüben. Sortiere das Ergebnis nach Familiennamen. 
+select ENAME from Emp 
+ where job = (select job from Emp where ENAME = 'ALLEN') &
+where DEPTNO = (select DEPTNO from DEPT where LOC like 'Chicago')
+
+
+--47)	Geben Sie eine Liste alle Jobs aus, deren Durchschnittsgehalt besser ist als bei Verkäufern (ohne COMM). 
+select Job, avg(sal) from EMP 
+group by job
+having avg(sal)>(select avg(sal) 
+from EMP 
+where Job like 'SALESMAN');
+-- 48)    Ermitteln Sie Name und Beruf jener Personen aus Filiale 10, welche einen Beruf ausüben, 
+--        der auch in Filiale 30 ausgeübt wird. 
+select ENAME, JOB from EMP where DEPTNO = 10 and Job IN (select distinct JOB from EMP where DEPTNO = 30);
+ --49)	Welche Berufe werden in Filiale 10 ausgeübt, die nicht auch in Filiale 30 ausgeübt werden. Gib die Namen der Personen und den Beruf an. 
+ select DEPTNO from Emp 
+ where DEPTNO no
+--50
 

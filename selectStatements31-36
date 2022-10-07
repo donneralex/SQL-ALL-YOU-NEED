@@ -1,0 +1,108 @@
+-- Neue Themen: group by mit having
+-- Vorzeigen:
+
+USE EmployeeScott;
+GO
+SELECT db_name();
+
+-- 1) Geben Sie das Durchschnittsgehalt für jeden Beruf aus, 2) wo die Summe aller Gehälter mehr als 5000 Euro beträgt.
+-- 3) Berücksichtigen Sie nur Angestellte, wo noch nicht bekannt ist, ob sie eine Provision bekommen werden.
+select Job, AVG(Sal) as Durchschnittsgehalt, SUM(Sal) as TotalSalary,  SUM(Sal) as GesamtsummeGehalt
+from Emp
+where Comm is null
+group by Job
+having sum(Sal) > 5000;
+
+select * from Emp where Comm is Null;
+
+select Job, AVG(Sal) as AveragePerJob, SUM(Sal) as SumPerJob 
+from Emp 
+where Comm is null 
+group by Job 
+having sum(Sal) > 5000; 
+
+select Job, avg(Sal) as Durschschnittsgehalt, SUM(Sal) as SummeAllerGehälter 
+from Emp 
+where Comm is null
+group by Job 
+having SUM(Sal) > 5000;
+
+
+
+
+
+
+
+-- Wörter wie "je", "pro", "für jeden" Job deuten auf ein "group by Job" hin.
+-- 31) Ermitteln Sie die Durchschnittsgehälter je Job, wobei Personen mit 
+-- Provisionszahlungen ausgenommen werden.
+-- Comm = null bedeutet, dass bei diesen Personen nicht klar ist, ob sie Provisionszahlungen erhalten, sie werden berücksichtigt
+-- als Personen die momentan keine Provision bekommen.
+-- Comm = 0 bedeutet, dass diese Person 0 Euro Provision bekommt, d.h. sie bekommt eine Provisionszahlung von 0 Euro, wird
+-- also nicht berücksichtig.
+-- Anmerkung: über diese Interpretation kann man zu Recht diskutieren, so wie beschrieben, passt die Interpretation zur Lösungstabelle.
+select Job, avg(Sal) as AverageSalary
+from Emp
+where Comm is null
+group by Job;
+
+
+-- 32)	Ermitteln Sie die Gesamt-Jahreszahlung (= SAL und COMM) je Filiale, in denen Mitarbeiter 
+-- beschäftigt sind (also ohne Abteilung 40). Jene Mitarbeiter, bei denen keine Provision eingetragen 
+-- ist, erhalten eine Ersatzzahlung in der Höhe von 100 US$ / Monat. 
+select DeptNo, sum(12*Sal) + sum(12*coalesce(Comm, 100)) as TotalPaymentsPerYear
+from Emp
+group by DeptNo;
+
+-- Abfrage 32 so abändern, sodass auch die Abteilung 40 mit 0 Euro ausgegen wird.
+-- Anmerkung: zuerst die Probleme mit inner join, Emp.DeptNo, coalesce bei Sal herzeigen 
+select Dept.DeptNo, coalesce(sum(12*Sal) + sum(12*coalesce(Comm, 100)), 0) as TotalPaymentsPerYear
+from Emp right join Dept on Dept.DeptNo = Emp.DeptNo
+group by Dept.DeptNo;
+
+
+-- 33) Ermitteln Sie jene Jobs, deren Durchschnittsgehalt (SAL) über 
+-- 1500 US$ liegt 
+-- und sortiere die Ausgabe absteigend nach dem Durchschnittsgehalt.
+
+-- Lösung 1 mit Having 
+select Job, avg(Sal) as AverageSalary
+from Emp
+group by Job
+having avg(Sal) > 1500
+order by AverageSalary desc;
+
+-- Lösung 2 mit Derived Tables (in der from Klausel steht der Derived Table)
+select Job, derivedTable.AvgSalary
+from (select Job, avg(Sal) as AvgSalary from Emp group by Job) as derivedTable
+where derivedTable.AvgSalary > 1500
+order by derivedTable.AvgSalary;
+
+-- 34) Ermitteln Sie jene Jobs, deren Durchschnittseinkommen (SAL+COMM) über 
+-- 1500 US$ liegt und sortiere die Ausgabe nach Durchschnittseinkommen.
+-- Folgende SQL Abfragen zeigen wie Null Werte durch den "+" Operator und "sum" ausgewertet werden.
+select * from Emp order by DeptNo;
+select Sal, Comm, Sal + Comm from Emp;
+select SUM(Comm) from Emp;
+-- Lösung:
+select Job, avg(Sal+coalesce(Comm, 0)), avg(Sal+Comm)  as AverageSalary
+from Emp
+group by Job
+having avg(Sal+coalesce(Comm, 0)) > 1500
+order by AverageSalary desc;
+
+
+-- 35) Geben Sie die Nummern der Filialen mit mindestens 2 Büroangestellten aus.
+select DeptNo
+from Emp
+where Emp.Job = 'CLERK'
+group by DeptNo
+having count(*) >= 2;
+
+-- 36) Ermitteln Sie jene Jobs, deren Durchschnittsgehalt (SAL) über 1500 US$ 
+-- liegt und sortiere die Ausgabe nach Job
+select Job, avg(Sal) as AverageSalary
+from Emp
+group by Job
+having avg(Sal) > 1500
+order by Job asc;

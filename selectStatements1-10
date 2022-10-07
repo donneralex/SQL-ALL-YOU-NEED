@@ -1,0 +1,76 @@
+BASIC SELECT STATEMENTS:
+
+USE EmployeeScott;
+GO
+SELECT db_name();
+PRINT db_Name();
+SELECT db_id();
+PRINT db_id();
+select * from Emp;
+select * from Dept;
+
+select * from Emp inner join Dept on Emp.DeptNo = Dept.DeptNo;
+select * from Emp full outer join Dept on Emp.DeptNo = Dept.DeptNo;
+
+-- New topics: select, from and where conditions (date comparison, like, in)
+
+-- 1) Geben Sie alle Informationen zu den Filialen aus.
+-- Eckige Klammern begrenzen einen Namen, notwendig, wenn z.B. Leerzeichen vorkommen: [Head of Department]
+select * from dbo.Dept;
+select * from [dbo].[Dept];
+
+-- 2) Geben Sie Name, Job und den Tag der Einstellung jener Angestellten aus, die in Filiale 10 arbeiten.
+select EName, Job, HireDate from dbo.Emp where DeptNo = 10;
+ 
+-- 3) Geben Sie Name, Job und Gehalt aller Büroangestellten (CLERK) aus.
+select EName, Job, Sal from Emp where Emp.Job='CLERK';
+
+-- 4) Geben Sie die Daten aller Angestellten aus, die nicht in Filiale 10 arbeiten.
+select * from Emp where Emp.DeptNo != 10;
+
+-- 5) Welche Angestellten bekommen mehr Provision als Gehalt?
+select Emp.EName from Emp where Comm > Sal;
+
+-- 6) Wer wurde am 3 Dezember 1981 angestellt?
+select EName from Emp where HireDate = '1981-12-03';
+-- Remark: this is the culture invariant form for a date, i.e. it works for different cultures
+-- see https://docs.microsoft.com/en-us/sql/relational-databases/collations/write-international-transact-sql-statements?view=sql-server-2017
+
+-- 7) Geben Sie Name und Gehalt jener Personen aus, die nicht zwischen 1250 und 1600 verdienen.
+-- Was heißt zwischen 1250 und 1600? Wenn die SQL Keywords between/and verwendet werden, dann erfüllen 1250 und 1600 auch die Bedingung.
+
+-- SQL between
+select EName, Sal from Emp where not (Sal >= 1250 and Sal <= 1600);
+
+select EName, Sal from Emp where Sal not between 1250 and 1600;
+select * from Emp;
+
+-- between so wie es im Deutschen verwendet wird, also exklusive der Randwerte des Zahlenintervalls
+select EName, Sal from Emp where not (Sal > 1250 and Sal < 1600);
+-- DeMorgan'sches Gesetz
+select EName, Sal from Emp where not(not(Sal <= 1250 or Sal >= 1600));
+
+select EName, Sal from Emp where not (Sal < 1250 or Sal > 1600);
+select EName, Sal from Emp where (Sal >= 1250 and Sal <= 1600);
+
+
+-- 8) Geben Sie alle Mitarbeiter aus, die keine Führungskräfte (MANAGER, PRESIDENT) sind.
+select * from Emp where Job not in ('MANAGER', 'PRESIDENT');
+select * from Emp where (Job != 'MANAGER' and Job != 'President');
+select * from Emp where not (Job = 'MANAGER' or Job = 'President');
+
+-- 9) Geben Sie alle Namen aus, welche an dritter Stelle ein „A“ haben.
+select EName from Emp where EName like '__A%';
+select EName from Emp where substring(EName, 3, 1) = 'A';
+-- % and _ verwenden
+-- https://www.w3schools.com/sql/sql_like.asp
+
+-- 10) Geben Sie Angestelltennummer, Name und Job jener Personen aus, die Provision beziehen.
+select * from Emp;
+select EmpNo, EName, Job from Emp where Comm > 0;
+-- Wie werden Null Werte behandelt?
+-- Ein Vergleich einer Zahl mit einem NULL-Wert ergibt false!
+select * from Emp where Comm != 300;
+select * from Emp where Comm IS NULL;
+
+select * from Emp where Comm = Null;

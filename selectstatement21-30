@@ -1,0 +1,181 @@
+-- Neue Themen: group by ohne having; Funktionen wie distinct;
+-- Vorzeigen: Zusammenhang Aggregatsfunktion und group-by-Attribute
+
+USE EmployeeScott;
+
+SELECT db_name();
+
+-- 21) Ermitteln Sie die Anzahl unterschiedlicher Berufe je/pro/ "für jede" Filiale, 
+-- Manager und Präsident jedoch ausgenommen. 
+select * from Emp;
+select DeptNo, COUNT(Job) from Emp group by DeptNo;
+
+select DeptNo, COUNT(distinct Job), max(Sal), SUM(Sal) as UnterschiedlicheJobsProDepartment 
+from Emp 
+where Job != 'Manager' and Job != 'President'
+group by DeptNo;
+
+select *
+from Emp 
+where Job != 'Manager' and Job != 'President'
+
+
+select * from Emp order by DeptNo;
+select  DeptNo, count(distinct Job) as [Anzahl Unterschiedlicher Jobs], sum(Sal) 
+from Emp 
+where Job != 'Manager' and Job != 'President'
+group by DeptNo;
+
+select DeptNo, count(distinct(Job))
+from Emp 
+where Emp.Job!='MANAGER' and Emp.Job<>'PRESIDENT' -- Filter für Datensätze!
+group by DeptNo;
+
+select * from Emp where Emp.Job!='MANAGER' and Emp.Job<>'PRESIDENT';
+--  
+--> Sack1-EmpNo (7782, 7839 ,...), Sack2-Sal (1300, 2450, 5000)
+select * from Emp;
+-- 20er Gruppe EName-Sack (Smith, Adams, ...), ...
+-- 10er Gruppe EName-Sack (Clark, King, Miller), Sal-Sack (1300, 2450,  5000), ...
+-- 30er Gruppe ...
+
+
+select * from Emp;
+select * from Dept;
+
+-- Vorzeigen (Was passiert bei sum statt count?)
+-- 22) Ermitteln Sie, wieviele Mitarbeiter durchschnittlich pro Filiale arbeiten.
+-- Beachten Sie, dass es vier Filialen gibt.
+-- Will man es richtig berechnen, müsste man auch die Tabelle Dept verwenden.
+-- Da in der Abteilung 40 niemand arbeitet, kommt Abteilung 40 nicht in der Emp Tabelle vor.
+-- Sie können hier jedoch auch nur mit 3 Abteilungen und der Tabelle Emp arbeiten, falls Sie 
+-- Subqueries oder Joins nicht kennen.
+select * from Emp;
+select count(EmpNo)/count(DeptNo), COUNT(EmpNo) EmpCount, COUNT(DeptNo) as DeptNoCount 
+from Emp;
+
+-- Achtung bei integer Division wird eine integer-Zahl zurückgegeben, deshalb ist vor der Division eine
+-- Umwandlung auf einen Datentyp, der Kommazahlen unterstützt, notwendig (mit cast() oder convert())
+-- mit Subquery
+select 1.0*count(EmpNo)/(select count(DeptNo) as AverageEmployeesPerDepartment from Dept) from Emp;
+
+
+-- real = float(24) -> similar to C#'s float
+-- double precision = float(53) -> similar to C#'s double
+select cast(count(EmpNo) as float)/(select count(DeptNo) as AverageEmployeesPerDepartment from Dept) as AverageEmployeesPerDepartment from Emp;
+select cast(count(EmpNo) as double precision)/(select count(DeptNo) as AverageEmployeesPerDepartment from Dept) as AverageEmployeesPerDepartment from Emp;
+select * from Emp;
+-- Lösung mit 4 Filialen und join
+select ((1.0 * count(distinct e.EmpNo))/count(distinct d.DeptNo)) as AverageEmployeesPerDepartment 
+from Emp e full outer join Dept d on e.DeptNo=d.DeptNo;
+select * from Emp;
+
+-- Lösung mit 3 Filialen (falsch)
+select * from Emp;
+
+select 1.0*count(EmpNo)/(select count(DeptNo) as AverageEmployeesPerDepartment from Dept) from Emp;
+
+select COUNT(EmpNo), count(distinct DeptNo), 
+(1.0 * count(EmpNo))/count(distinct(DeptNo)) as AverageEmployeesPerDepartment 
+from Emp;
+
+-- Lösung vom html File, welche nicht die vier Abteilungen berücksichtigt (falsch)
+select avg(cast(anzahl_pro_filiale as float))
+from (select deptno, count(ename) as anzahl_pro_filiale
+      from Emp
+      group by deptno) zwischenergebnis;
+
+
+
+-- 23) Geben Sie alle Führungskräfte aus (MANAGER und PRESIDENT)
+select EName from Emp where Job in ('MANAGER', 'PRESIDENT');
+select EName from Emp where Job = 'MANAGER' or Job = 'PRESIDENT';
+
+-- 24) Geben Sie Namen, Job und Provision aller Angestellten aus, deren Provision größer 
+-- als 25% des Gehalts ist.
+select * from Emp;
+select EName, Job, Comm from Emp where Comm > (0.25 * Sal);
+select EName, Job, Comm from Emp where Comm is Null;
+
+-- 25) Was ist das geringste Einkommen (SAL + COMM)?
+select MIN(Sal+coalesce(Comm, 0)) from Emp;
+
+select * from Emp;
+select MIN(Sal + coalesce(COMM, 0)) as Ärmster from Emp;
+select EName, Sal, Comm, Sal + COMM as Ärmster from Emp;
+
+select EName, (Sal + Comm) from Emp; -- erster Versuch
+--> Null + Zahl = Null
+-- EName is displayed for testing purposes
+select EName, Sal + coalesce(Comm, 0) from Emp;
+select Min(Sal + coalesce(Comm, 0)) as [Minimum Salary] from Emp; 
+
+-- 26) Wann ist der am längsten angestellte Mitarbeiter der Firma eingetreten?
+select format(min(HireDate), 'dd.MM.yy') as LongestEmployeeTime from Emp;
+
+select format(min(HireDate), 'dd.MMM.yy') as LongestEmployeeTime from Emp;
+select format(min(HireDate), 'dd. MMMM yyyy') as LongestEmployeeTime from Emp;
+select min(HireDate) as LongestEmployeeTime from Emp;
+select format(min(HireDate), '', 'de-AT') as LongestEmployeeTime from Emp;
+
+-- 27) Ermitteln Sie je Filiale, die in dieser Filiale ausgeübten Jobs, sowie die Anzahl Personen, 
+-- welche diesen in der jeweiligen Filiale ausüben.
+--> "je" deutet auf Verwendung von "group by" in der Abfrage hin
+-- Vorzeigen: was passiert, wenn man HireDate in das select ohne Aggregatfunktion schreibt.
+-- Es kommt eine Fehlermeldung, weil es mehrer HireDate Werte in jeder Gruppe gibt. Das System "weiß" nicht
+-- welchen Wert es anzeigen soll.
+-- Vorzeigen: was passiert, wenn man DeptNo in das select mit Aggregatfunktion (mit count z.B.) schreibt.
+-- Die Aggregatfunktion wird ignoriert.
+select * from Emp order by DeptNo;
+
+select DeptNo, Job, count(EmpNo) as NrOfEmployees
+from Emp 
+group by DeptNo, Job
+order by DeptNo;
+--(10, Manager), (10, President), (10, Clerk), (20, Analyst), (20, Clerk) -> ENameSack (Adams, Smith), SalSack (800, 1100) , (20, Manager), (30, Salesman), ...
+
+
+
+-- 28) Ermitteln Sie je Filiale das höchste Einkommen, und daraus 
+-- (im Vergleich der einzelnen Filialen untereinander) den geringsten Betrag.
+-- Vorzeigen: derived table
+select DeptNo, max(Sal) as MaxSalPerDept from Emp group by DeptNo; -- Zwischenschritt zum Testen
+select min(MaxSalPerDeptTable.MaxSalPerDept) 
+from (select DeptNo as DeptNoHelp, max(Sal) as MaxSalPerDept 
+		from Emp group by DeptNo) as MaxSalPerDeptTable;
+-- Oracle: select min(max(Sal)) from Emp group by DeptNo;
+
+-- nur verwenden, wenn man zum kleinsten Wert nicht auch die Abteilungen benötigt,
+-- es könnte mehrere Abteilungen geben, die den kleinsten Wert haben:
+select top(1) max(Sal) as MaxSalPerDept from Emp group by DeptNo 
+order by MaxSalPerDept asc;
+
+select max(Sal) as MaxSalPerDept from Emp group by DeptNo 
+order by MaxSalPerDept asc;
+
+-- 29) Ermitteln Sie Minimum, Maximum und Durchschnitt des Gehaltes je Filiale.
+select * from Emp order by DeptNo;
+select deptNo, min(Sal) as Minimum, max(Sal) as Maximum, round(avg(Sal),2) as Durchschnitt from Emp 
+group by DeptNo;
+
+
+-- 30) Ermitteln Sie Minimum, Maximum und Durchschnitt des Gehaltes, sowie Anzahl 
+-- der Jobs je Filiale, wobei jedoch Manager und Präsident nicht mitgerechnet werden sollen.
+select deptNo, min(Sal) as Minimum, max(Sal) as Maximum, round(avg(Sal),2) as Durchschnitt, count(empNo) 
+from Emp 
+where Job not in ('MANAGER', 'PRESIDENT') 
+group by DeptNo;
+
+
+select * from Emp;
+select DeptNo, min(Sal) as MinSal 
+from Emp 
+where Job not in ('MANAGER', 'PRESIDENT')
+group by DeptNo;
+
+
+select deptNo, min(Sal) as Minimum, max(Sal) as Maximum, round(avg(Sal),2) as Durchschnitt, count(empNo) from Emp 
+where not (job = 'Manager' or job = 'President') group by DeptNo;
+
+
+

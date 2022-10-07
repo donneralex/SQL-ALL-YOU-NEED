@@ -1,0 +1,78 @@
+DECLARE @databaseName sysname;  
+SET @databaseName = 'Lesson1_CreateAndQuery';  
+
+if db_id(@databaseName) is not null
+	BEGIN
+	   --code mine :)
+	   PRINT 'Database exists';
+	END
+ELSE
+	BEGIN
+		CREATE DATABASE Lesson1_CreateAndQuery;
+	END
+go
+
+
+USE Lesson1_CreateAndQuery;
+
+
+-- Create a new table called 'Customers' in schema 'dbo'
+-- Drop the table if it already exists
+IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL
+DROP TABLE dbo.Products;
+
+CREATE TABLE Products
+   (ProductID int PRIMARY KEY NOT NULL,
+   ProductName nvarchar(25) NOT NULL,  
+   Price money NULL,  
+   ProductDescription nvarchar(400) NULL);
+
+-- Standard syntax  
+INSERT dbo.Products (ProductID, ProductName, Price, ProductDescription)  
+   VALUES (1, 'Clamp', 12.48, 'Workbench clamp'); 
+
+-- Changing the order of the columns  
+INSERT dbo.Products (ProductName, ProductID, Price, ProductDescription)  
+   VALUES ('Screwdriver', 50, 3.17, 'Flat head');
+
+-- Skipping the column list, but keeping the values in order  
+INSERT dbo.Products  
+   VALUES (75, 'Tire Bar', NULL, 'Tool for changing tires.');
+
+-- Dropping the optional dbo and dropping the ProductDescription column  
+INSERT Products (ProductID, ProductName, Price)  
+   VALUES (3000, '3mm Bracket', .52); 
+
+
+-- should not work because the same value is used for the primary key
+--INSERT Products (ProductID, ProductName, Price)  
+--   VALUES (3000, '3mm Bracket', .52)  
+
+
+IF OBJECT_ID('dbo.vw_Names', 'V') IS NOT NULL
+DROP VIEW vw_Names;
+GO
+
+CREATE VIEW vw_Names 
+   AS  
+   SELECT ProductName, Price FROM dbo.Products;  
+GO
+
+IF OBJECT_ID('pr_Names') IS NOT NULL
+DROP PROCEDURE pr_Names;
+GO
+
+CREATE PROCEDURE pr_Names @VarPrice money  
+   AS  
+   BEGIN  
+      -- The print statement returns text to the user  
+      PRINT 'Products less than ' + CAST(@VarPrice AS varchar(10));  
+      -- A second statement starts here  
+      SELECT ProductName, Price FROM vw_Names  
+            WHERE Price < @varPrice;  
+   END  
+GO
+
+SELECT * FROM [dbo].[Products]
+         
+EXECUTE pr_Names 10.00;  

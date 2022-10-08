@@ -5,3 +5,9 @@ How to create a Database with EmployeeScott testdatabase
 THIS SELECT STATEMENTS WERE MADE IN MY SCHOOL BY MYSELF!
 
 If there are some mistakes, please tell me!
+
+
+ToDO: 
+
+Joins, Stored Producre, P-SQL/T-SQL
+
